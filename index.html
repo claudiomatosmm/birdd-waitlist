@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Birdd - Share Your Bird Photographies</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -39,6 +40,8 @@
             background: white;
             display: flex;
             justify-content: flex-end;
+            position: relative;
+            z-index: 10;
         }
         
         .content-section {
@@ -46,17 +49,19 @@
             background: white;
             display: flex;
             justify-content: flex-end;
+            position: relative;
+            z-index: 10;
         }
         
         .screenshot-section {
             grid-area: screenshot;
             background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             position: relative;
-            overflow: hidden;
             background-size: 200% 200%;
             animation: gradient-flow 8s ease infinite;
             display: flex;
             justify-content: flex-start;
+            overflow: hidden;
         }
 
         .header-wrapper {
@@ -81,7 +86,7 @@
 
         .screenshot-wrapper {
             width: 100%;
-            max-width: 700px;
+            max-width: 3000px;
             padding: 40px;
             display: flex;
             flex-direction: column;
@@ -104,8 +109,8 @@
         }
 
         .logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #22c55e, #16a34a);
             border-radius: 12px;
             display: flex;
@@ -113,7 +118,7 @@
             justify-content: center;
             margin-right: 15px;
             color: white;
-            font-size: 22px;
+            font-size: 26px;
             animation: bounce-gentle 2s ease-in-out infinite;
         }
 
@@ -129,7 +134,7 @@
         }
 
         .logo-text {
-            font-size: 26px;
+            font-size: 32px;
             font-weight: 700;
             color: #1f2937;
             animation: bounce-gentle 2s ease-in-out infinite;
@@ -311,8 +316,10 @@
         }
         
         .app-preview-image {
-            max-width: 130%;
+            width: 210%;
+            max-width: 210%;
             height: auto;
+            display: block;
             transition: all 0.5s ease;
             filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
         }
@@ -354,7 +361,7 @@
             }
             
             .app-preview-image {
-                max-width: 110%;
+                max-width: none;
             }
         }
         
@@ -468,7 +475,12 @@
             }
             
             .app-preview-image {
+                position: static;
+                width: 90%;
                 max-width: 90%;
+                transform: none;
+                left: auto;
+                top: auto;
             }
             
             .form-group {
@@ -520,12 +532,12 @@
             .logo { margin-bottom: 15px; }
             .hero-title { font-size: 28px; line-height: 1.2; margin-bottom: 16px; }
             .hero-subtitle { font-size: 16px; margin-bottom: 24px; line-height: 1.4; }
-            .logo-text { font-size: 22px; }
-            .logo-icon { width: 35px; height: 35px; font-size: 18px; }
+            .logo-text { font-size: 30px; }
+            .logo-icon { width: 48px; height: 48px; font-size: 24px; }
             .features-list { margin-bottom: 28px; }
             .features-list li { font-size: 14px; margin-bottom: 14px; }
             .features-list li::before { width: 20px; height: 20px; font-size: 16px; margin-right: 10px; }
-            .app-preview-image { max-width: 95%; }
+            .app-preview-image { max-width: 95%; transform: none; }
             #mobile-form-container .lead-form { padding: 10px 12px; }
             .form-input { padding: 16px 150px 16px 16px; }
             .form-group::after { padding: 0 20px; font-size: 15px; }
@@ -709,7 +721,7 @@
                 <div class="particle"></div>
             </div>
             <div class="screenshot-wrapper">
-                <img src="phones.png" alt="Three iPhone mockups showing the Birdwatch app" class="app-preview-image">
+                <img src="phones.png" alt="Three iPhone mockups showing the Birdwatch app" class="app-preview-image" style="width: 210% !important; height: auto !important; max-width: 210% !important;">
             </div>
         </div>
         
@@ -717,7 +729,7 @@
         <div class="content-section">
             <div class="content-wrapper">
                 <div>
-                    <h1 class="hero-title">Share Your Bird Photographies</h1>
+                    <h1 class="hero-title">Share Your Bird Photos</h1>
                     <p class="hero-subtitle">Join the community of passionate birdwatchers and photographers. Capture, share, and discover amazing bird moments.</p>
                     
                     <ul class="features-list">
@@ -750,7 +762,7 @@
     <div id="mobile-form-container"></div>
 
     <footer>
-        <p class="footer-text">© 2024 Birdd. All rights reserved. Built with passion for birdwatchers.</p>
+        <p class="footer-text"></p>
     </footer>
 
     <script>
@@ -873,6 +885,25 @@
         });
 
         window.addEventListener('resize', handleFormLayout);
+
+        function adjustImageSize() {
+            const image = document.querySelector('.app-preview-image');
+            if (image) {
+                if (window.innerWidth >= 1025) {
+                    // Desktop - bigger image
+                    image.style.width = '160%';
+                    image.style.maxWidth = '160%';
+                } else {
+                    // Mobile/Tablet - larger image
+                    image.style.width = '210%';
+                    image.style.maxWidth = '210%';
+                }
+            }
+        }
+
+        // Call on page load and resize
+        window.addEventListener('load', adjustImageSize);
+        window.addEventListener('resize', adjustImageSize);
 
         const style = document.createElement('style');
         style.textContent = `
