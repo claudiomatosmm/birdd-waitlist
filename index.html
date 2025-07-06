@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birdd - Share Your Bird Photographies</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fffe 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr;
+            grid-template-areas: 
+                "header screenshot"
+                "content screenshot";
+            min-height: 100vh;
+            flex: 1;
+            overflow-x: hidden;
+        }
+
+        /* Desktop Layout */
+        .header-section {
+            grid-area: header;
+            background: white;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .content-section {
+            grid-area: content;
+            background: white;
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .screenshot-section {
+            grid-area: screenshot;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            position: relative;
+            overflow: hidden;
+            background-size: 200% 200%;
+            animation: gradient-flow 8s ease infinite;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .header-wrapper {
+            width: 100%;
+            max-width: 700px;
+            padding: 40px 40px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+        }
+        
+        .content-wrapper {
+            width: 100%;
+            max-width: 700px;
+            padding: 20px 40px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .screenshot-wrapper {
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            animation: glow-pulse 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow-pulse {
+            0% { filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.2)); }
+            100% { filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4)); }
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 22px;
+            animation: bounce-gentle 2s ease-in-out infinite;
+        }
+
+        .logo-icon img {
+            width: 70%;
+            height: 70%;
+            filter: brightness(0) invert(1);
+        }
+
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .logo-text {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1f2937;
+            animation: bounce-gentle 2s ease-in-out infinite;
+        }
+
+        .hero-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1f2937, #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: title-shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes title-shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: 19px;
+            color: #6b7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            opacity: 0;
+            animation: fade-in-up 1s ease-out 0.5s forwards;
+        }
+
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .features-list {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #4b5563;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fade-in-left 0.8s ease-out forwards;
+        }
+
+        .features-list li:nth-child(1) { animation-delay: 0.8s; }
+        .features-list li:nth-child(2) { animation-delay: 1.0s; }
+        .features-list li:nth-child(3) { animation-delay: 1.2s; }
+
+        @keyframes fade-in-left {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .features-list li:hover {
+            transform: translateX(10px) scale(1.02);
+            color: #22c55e;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            color: #22c55e;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+            background: #dcfce7;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .features-list li:hover::before {
+            background: #22c55e;
+            color: white;
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        .lead-form {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fade-in-up 1s ease-out 1.5s forwards;
+            width: 100%;
+        }
+
+        .lead-form:hover {
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px; 
+            border-radius: 8px; 
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .form-input::placeholder {
+            color: #6b7280;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+            transform: none;
+        }
+
+        .form-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: block;
+        }
+
+        .form-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .form-button:hover::before {
+            left: 100%;
+        }
+
+        .form-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(34, 197, 94, 0.4);
+        }
+
+        .form-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .app-preview-image {
+            max-width: 130%;
+            height: auto;
+            transition: all 0.5s ease;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+        }
+
+        .app-preview-image:hover {
+            transform: scale(1.05) rotate(1deg);
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.3));
+        }
+
+        .success-message {
+            display: none;
+            background: #dcfce7;
+            color: #166534;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .privacy-text {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        /* Enhanced Mobile Responsiveness */
+        
+        /* Large tablets and small desktops */
+        @media (max-width: 1024px) {
+            .header-wrapper, .content-wrapper, .screenshot-wrapper {
+                max-width: 600px;
+                padding: 30px;
+            }
+            
+            .hero-title {
+                font-size: 42px;
+            }
+            
+            .app-preview-image {
+                max-width: 110%;
+            }
+        }
+        
+        /* Tablets and Mobile - Stack sections vertically */
+        @media (max-width: 768px) {
+            body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                background: linear-gradient(180deg, #e7f7ef 0%, #ffffff 70%);
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                grid-template-areas:
+                    "header"
+                    "screenshot"
+                    "content";
+                position: relative;
+                flex: 1;
+                min-height: calc(100vh - 120px); /* Reserve space for footer */
+                overflow-x: initial; /* Ensure no overflow setting on mobile container */
+            }
+
+            .header-section {
+                background: transparent;
+            }
+
+            #mobile-form-container {
+                position: sticky;
+                bottom: 0;
+                z-index: 1000;
+            }
+
+            #mobile-form-container .lead-form {
+                background: #ffffff;
+                border-top: 1px solid #e5e7eb;
+                border-radius: 0;
+                animation: slide-in-up 0.5s ease-out;
+                padding: 12px 15px;
+                opacity: 1;
+            }
+
+            @keyframes slide-in-up {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+
+            .content-section {
+                padding-bottom: 0;
+            }
+
+            .header-section, .content-section, .screenshot-section {
+                grid-area: unset;
+                order: 0;
+            }
+            
+            .screenshot-section {
+                order: 2;
+                min-height: 40vh;
+                justify-content: center;
+                background: transparent !important;
+                animation: none !important;
+                margin-top: -5px;
+            }
+            
+            .screenshot-section .particles {
+                display: none;
+            }
+            
+            .content-section {
+                order: 3;
+                justify-content: center;
+                background: transparent;
+                margin-top: -5px;
+            }
+            
+            .header-wrapper, .content-wrapper, .screenshot-wrapper {
+                padding: 40px 30px 5px 30px;
+                justify-content: center;
+                max-width: none;
+            }
+            
+            .content-wrapper {
+                padding: 5px 30px 40px 30px;
+            }
+            
+            .screenshot-wrapper {
+                padding: 5px 30px;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+                line-height: 1.3;
+                text-align: center;
+            }
+            
+            .hero-subtitle {
+                display: none;
+            }
+            
+            .logo {
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+            
+            .features-list li {
+                font-size: 15px;
+                margin-bottom: 12px;
+            }
+            
+            .app-preview-image {
+                max-width: 90%;
+            }
+            
+            .form-group {
+                margin-bottom: 0;
+            }
+            
+            .form-input {
+                padding: 14px 160px 14px 16px;
+                font-size: 16px;
+                border-radius: 25px;
+                border: 2px solid #e5e7eb;
+            }
+            
+            .form-button {
+                display: none !important;
+            }
+            
+            .form-group {
+                --button-text: 'Join Waitlist';
+            }
+            
+            .form-group::after {
+                content: var(--button-text);
+                position: absolute;
+                right: 2px;
+                top: 2px;
+                bottom: 2px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 24px;
+                color: white;
+                font-size: 16px;
+                font-weight: 600;
+                pointer-events: none;
+                border-radius: 22px;
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                cursor: pointer;
+            }
+        }
+        
+        /* Large phones */
+        @media (max-width: 480px) {
+            .screenshot-section { margin-top: -8px; }
+            .content-section { margin-top: -8px; }
+            .header-wrapper { padding: 30px 20px 8px 20px; }
+            .content-wrapper { padding: 8px 20px 30px 20px; }
+            .screenshot-wrapper { padding: 5px 20px; }
+            .logo { margin-bottom: 15px; }
+            .hero-title { font-size: 28px; line-height: 1.2; margin-bottom: 16px; }
+            .hero-subtitle { font-size: 16px; margin-bottom: 24px; line-height: 1.4; }
+            .logo-text { font-size: 22px; }
+            .logo-icon { width: 35px; height: 35px; font-size: 18px; }
+            .features-list { margin-bottom: 28px; }
+            .features-list li { font-size: 14px; margin-bottom: 14px; }
+            .features-list li::before { width: 20px; height: 20px; font-size: 16px; margin-right: 10px; }
+            .app-preview-image { max-width: 95%; }
+            #mobile-form-container .lead-form { padding: 10px 12px; }
+            .form-input { padding: 16px 150px 16px 16px; }
+            .form-group::after { padding: 0 20px; font-size: 15px; }
+            .privacy-text { font-size: 11px; margin-top: 12px; }
+        }
+        
+        /* Small phones */
+        @media (max-width: 360px) {
+            .screenshot-section { margin-top: -10px; }
+            .content-section { margin-top: -10px; }
+            .header-wrapper { padding: 25px 15px 5px 15px; }
+            .content-wrapper { padding: 5px 15px 25px 15px; }
+            .screenshot-wrapper { padding: 3px 15px; }
+            .logo { margin-bottom: 12px; }
+            .hero-title { font-size: 24px; margin-bottom: 12px; }
+            .hero-subtitle { font-size: 15px; margin-bottom: 20px; }
+            .logo-text { font-size: 20px; }
+            .logo-icon { width: 32px; height: 32px; font-size: 16px; margin-right: 12px; }
+            .features-list li { font-size: 13px; margin-bottom: 12px; }
+            #mobile-form-container .lead-form { padding: 10px 12px; }
+            .form-input { padding: 15px 140px 15px 15px; }
+            .form-group::after { padding: 0 18px; font-size: 14px; }
+        }
+        
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .features-list li:hover,
+            .form-button:hover,
+            .app-preview-image:hover,
+            .lead-form:hover {
+                transform: none;
+            }
+            .form-button:active {
+                transform: scale(0.98);
+                background: linear-gradient(135deg, #16a34a, #15803d);
+            }
+            .features-list li:active {
+                color: #22c55e;
+                transform: translateX(5px);
+            }
+        }
+        
+        /* Landscape phone optimization */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: none;
+            }
+            .hero-title { font-size: 24px; margin-bottom: 12px; }
+            .hero-subtitle { font-size: 14px; margin-bottom: 16px; }
+            .features-list { margin-bottom: 16px; }
+            .features-list li { font-size: 13px; margin-bottom: 8px; }
+            #mobile-form-container .lead-form { padding: 16px; }
+            .app-preview-image { max-width: 80%; }
+        }
+        
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .app-preview-image {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            animation: float-particle 15s infinite linear;
+        }
+
+        .particle:nth-child(1) { width: 6px; height: 6px; left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { width: 8px; height: 8px; left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { width: 5px; height: 5px; left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { width: 7px; height: 7px; left: 40%; animation-delay: 6s; }
+        .particle:nth-child(5) { width: 6px; height: 6px; left: 50%; animation-delay: 8s; }
+        .particle:nth-child(6) { width: 9px; height: 9px; left: 60%; animation-delay: 10s; }
+        .particle:nth-child(7) { width: 5px; height: 5px; left: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { width: 7px; height: 7px; left: 80%; animation-delay: 14s; }
+
+        @keyframes float-particle {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Jiggle animation for buttons with intervals */
+        @keyframes jiggle-interval {
+            /* Jiggle phase (0-20% = 0.8s) */
+            0% { transform: translateX(0); }
+            2% { transform: translateX(-2px) rotate(-1deg); }
+            4% { transform: translateX(2px) rotate(1deg); }
+            6% { transform: translateX(-2px) rotate(-1deg); }
+            8% { transform: translateX(2px) rotate(1deg); }
+            10% { transform: translateX(-1px) rotate(-0.5deg); }
+            12% { transform: translateX(1px) rotate(0.5deg); }
+            14% { transform: translateX(-1px) rotate(-0.5deg); }
+            16% { transform: translateX(1px) rotate(0.5deg); }
+            18% { transform: translateX(0) rotate(0deg); }
+            20% { transform: translateX(0); }
+            
+            /* Rest phase (20-100% = 3.2s) */
+            21% { transform: translateX(0); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Apply jiggle animation to desktop button */
+        .form-button {
+            animation: jiggle-interval 4s ease-in-out infinite;
+            animation-delay: 2s;
+        }
+
+        /* Apply jiggle animation to mobile pseudo-element */
+        @media (max-width: 768px) {
+            .form-group::after {
+                animation: jiggle-interval 4s ease-in-out infinite;
+                animation-delay: 2s;
+            }
+        }
+
+        .form-container.form-submitted .lead-form {
+            display: none;
+        }
+
+        .form-container.form-submitted .success-message {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-wrapper">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <img src="logo.png" alt="Birdd Logo">
+                    </div>
+                    <div class="logo-text">Birdd</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Screenshot Section -->
+        <div class="screenshot-section">
+            <div class="particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+            <div class="screenshot-wrapper">
+                <img src="phones.png" alt="Three iPhone mockups showing the Birdwatch app" class="app-preview-image">
+            </div>
+        </div>
+        
+        <!-- Content Section -->
+        <div class="content-section">
+            <div class="content-wrapper">
+                <div>
+                    <h1 class="hero-title">Share Your Bird Photographies</h1>
+                    <p class="hero-subtitle">Join the community of passionate birdwatchers and photographers. Capture, share, and discover amazing bird moments.</p>
+                    
+                    <ul class="features-list">
+                        <li>Share high-quality bird photos instantly</li>
+                        <li>Connect with fellow birdwatchers worldwide</li>
+                        <li>Track your birding locations and sightings</li>
+                    </ul>
+                </div>
+                <!-- Lead Form (moved back inside content-section for desktop layout) -->
+                <div class="form-container">
+                    <div class="lead-form">
+                        <h2 class="form-title">Get Early Access</h2>
+                        <form id="leadForm">
+                            <div class="form-group">
+                                <input type="email" id="email" class="form-input" placeholder="Email Address" required>
+                            </div>
+                            <button type="submit" class="form-button">Join the Waitlist</button>
+                        </form>
+                        <p class="privacy-text">We respect your privacy. No spam, unsubscribe anytime.</p>
+                    </div>
+                    <div class="success-message" id="successMessage">
+                        🎉 Thank you! You're now on our early access list. We'll notify you when Birdwatch launches!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- This empty div will be used by JavaScript to hold the form on mobile -->
+    <div id="mobile-form-container"></div>
+
+    <footer>
+        <p class="footer-text">© 2024 Birdd. All rights reserved. Built with passion for birdwatchers.</p>
+    </footer>
+
+    <script>
+        const supabaseUrl = 'https://jpolidwcsiiatbpmtjbc.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impwb2xpZHdjc2lpYXRicG10amJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MDA4MDksImV4cCI6MjA2NzM3NjgwOX0.EslmAcDoqoPW32jnc5k-CB_sLb9VXnLZD9XPBj5TCyk'
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+        const formContainer = document.querySelector('.form-container');
+        const leadForm = document.querySelector('.lead-form');
+        const submitButton = leadForm.querySelector('.form-button');
+        const originalButtonText = submitButton.innerHTML;
+
+        leadForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            
+            const emailInput = leadForm.querySelector('.form-input');
+            const email = emailInput.value.trim();
+            const successMessage = document.getElementById('successMessage');
+            const formTitle = leadForm.querySelector('.form-title');
+
+            if (!email) {
+                formTitle.textContent = "Please enter a valid email address.";
+                formTitle.style.color = '#ef4444';
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner"></span> Sending...';
+            
+            try {
+                const { data, error } = await supabase
+                    .from('emails')
+                    .insert([{ email: email }]);
+
+                if (error) {
+                    throw error;
+                }
+                
+                formContainer.classList.add('form-submitted');
+                emailInput.value = '';
+
+            } catch (error) {
+                console.error('Error:', error);
+                formTitle.textContent = "An error occurred. Please try again.";
+                formTitle.style.color = '#ef4444';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+            }
+        });
+
+        function handleFormLayout() {
+            const leadForm = document.querySelector('.lead-form');
+            if (!leadForm) return; // Guard against element not found
+            
+            const mobileContainer = document.getElementById('mobile-form-container');
+            const desktopContainer = document.querySelector('.content-wrapper');
+
+            if (window.innerWidth <= 768) {
+                // If form is not already in the mobile container, move it
+                if (leadForm.parentElement !== mobileContainer) {
+                    mobileContainer.appendChild(leadForm);
+                }
+            } else {
+                // If form is not already in the desktop container, move it back
+                if (leadForm.parentElement !== desktopContainer) {
+                    desktopContainer.appendChild(leadForm);
+                }
+            }
+        }
+
+        // Add click handler for mobile form group
+        document.addEventListener('DOMContentLoaded', function() {
+            handleFormLayout(); // Initial check
+            
+            const formGroup = document.querySelector('.form-group');
+            const emailInput = document.getElementById('email');
+            
+            formGroup.addEventListener('click', function(e) {
+                // Check if click is on the right side (where the "Join Waitlist" text is)
+                const rect = formGroup.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const formWidth = rect.width;
+                
+                if (clickX > formWidth * 0.6 && window.innerWidth <= 768) {
+                    // Only submit if there's a valid email
+                    const email = emailInput.value;
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    
+                    if (emailRegex.test(email)) {
+                        handleFormSubmit(new Event('submit', { cancelable: true }));
+                    } else if (email) {
+                        alert('Please enter a valid email address');
+                    } else {
+                        // Focus the input if no email is entered
+                        emailInput.focus();
+                    }
+                }
+            });
+        });
+
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+
+        window.addEventListener('load', function() {
+            const headerSection = document.querySelector('.header-section');
+            const contentSection = document.querySelector('.content-section');
+            const screenshotSection = document.querySelector('.screenshot-section');
+            
+            if (headerSection) headerSection.style.animation = 'slideInLeft 0.8s ease-out';
+            if (contentSection) contentSection.style.animation = 'slideInLeft 0.8s ease-out 0.2s';
+            if (screenshotSection) screenshotSection.style.animation = 'slideInRight 0.8s ease-out';
+        });
+
+        window.addEventListener('resize', handleFormLayout);
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInLeft {
+                from { transform: translateX(-100px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideInRight {
+                from { transform: translateX(100px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
